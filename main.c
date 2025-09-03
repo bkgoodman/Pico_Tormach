@@ -28,9 +28,12 @@
 #include <string.h>
 
 #include "bsp/board_api.h"
-#include "tusb.h"
+#include <tusb.h>
 
 #include "usb_descriptors.h"
+#include <pico/stdio.h>
+#include <pico/stdio_usb.h>
+
 
 //--------------------------------------------------------------------+
 // MACRO CONSTANT TYPEDEF PROTYPES
@@ -58,11 +61,15 @@ int main(void)
   board_init();
 
   // init device stack on configured roothub port
-  tud_init(BOARD_TUD_RHPORT);
+  tusb_init();
+  //tud_init(BOARD_TUD_RHPORT);
 
   if (board_init_after_tusb) {
     board_init_after_tusb();
   }
+
+  stdio_init_all();
+
 
   while (1)
   {
@@ -70,6 +77,13 @@ int main(void)
     led_blinking_task();
 
     hid_task();
+if (tud_cdc_n_connected(0)) {
+        // print on CDC 0 some debug message
+        printf("Connected to CDC 0\n");
+fflush(stdout);
+        sleep_ms(1000); // wait for 5 seconds
+    }
+
   }
 }
 
@@ -112,7 +126,7 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
 {
   // skip if hid is not ready yet
   if ( !tud_hid_ready() ) return;
-  tud_hid_report(0, "ABCDEF", 5);
+  //tud_hid_report(0, "ABCDEF", 5);
   return;
 
   switch(report_id)
