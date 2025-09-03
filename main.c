@@ -126,7 +126,9 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
 {
   // skip if hid is not ready yet
   if ( !tud_hid_ready() ) return;
-  //tud_hid_report(0, "ABCDEF", 5);
+  if (board_button_read())
+    printf ("Keypress\n");
+  tud_hid_report(0, "ABCDEF", 5);
   return;
 
   switch(report_id)
