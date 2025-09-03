@@ -52,9 +52,13 @@ enum  {
 
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
+#define HID_DATA_LEN 31
+uint8_t hid_data[HID_DATA_LEN];
+
 void led_blinking_task(void);
 void hid_task(void);
 
+void process_stdio_in();
 /*------------- MAIN -------------*/
 int main(void)
 {
@@ -77,12 +81,14 @@ int main(void)
     led_blinking_task();
 
     hid_task();
+  process_stdio_in();
+  /*
 if (tud_cdc_n_connected(0)) {
         // print on CDC 0 some debug message
         printf("Connected to CDC 0\n");
-fflush(stdout);
         sleep_ms(1000); // wait for 5 seconds
     }
+    */
 
   }
 }
@@ -128,7 +134,8 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
   if ( !tud_hid_ready() ) return;
   if (board_button_read())
     printf ("Keypress\n");
-  tud_hid_report(0, "ABCDEF", 5);
+  //tud_hid_report(0, hid_data,HID_DATA_LEN);
+  tud_hid_report(0, "ABCDE",5);
   return;
 
   switch(report_id)
@@ -215,6 +222,87 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
     default: break;
   }
 }
+
+#define INPUT_BUFFER_SIZE 256
+uint8_t input_index=0;
+uint8_t input_buffer[INPUT_BUFFER_SIZE];
+
+void process_line(void) {
+    printf("Received: \"%s\"\n", input_buffer);
+
+    // Parse the ASCII string and convert to binary
+    char *token = strtok(input_buffer, " ");
+    size_t binary_index = 0;
+
+    while (token != NULL && binary_index < HID_DATA_LEN) {
+        // Convert the hex string token (e.g., "aa") to a binary byte
+        long value = strtol(token, NULL, 16);
+        hid_data[binary_index++] = (uint8_t)value;
+
+        // Get the next token
+        token = strtok(NULL, " ");
+    }
+
+    // Print the converted binary data
+    printf("Converted to binary (size: %zu):\n", binary_index);
+    for (size_t i = 0; i < binary_index; i++) {
+        printf("%02X ", hid_data[i]);
+    }
+    printf("\n");
+    tud_hid_report(0, hid_data, binary_index);
+    // Clear buffer for next line
+    memset(input_buffer, 0, INPUT_BUFFER_SIZE);
+    input_index = 0;
+
+}
+
+void process_stdio_in()
+{
+// Read a single character with a short timeout
+        int c = getchar_timeout_us(0); // 0 timeout means non-blocking
+
+        if (c != PICO_ERROR_TIMEOUT) {
+            // If the character is a newline or carriage return, process the line
+            if (c == '\n' || c == '\r') {
+                input_buffer[input_index] = '\0'; // Null-terminate the string
+                process_line();
+            } else {
+                // Otherwise, add the character to the buffer
+                if (input_index < INPUT_BUFFER_SIZE - 1) {
+                    input_buffer[input_index++] = (char)c;
+                }
+            }
+        }
+}
+
+/*
+// Define a buffer to hold the received data
+#define CDC_BUFFER_SIZE 64
+uint8_t buffer_index=0;
+uint8_t cdc_rx_buffer[CDC_BUFFER_SIZE];
+
+
+
+void tud_cdc_rx_cb(uint8_t itf) {
+if (itf ==0) return;
+    uint32_t count;
+    // Read all available data from the CDC buffer
+    //while (tud_cdc_available()) {
+        count = tud_cdc_n_read(itf,cdc_rx_buffer, sizeof(cdc_rx_buffer));
+        
+            // Process the received data here. For example, print it.
+            // Note: This will not be line-buffered. It will print every packet.
+            printf("Read %d bytes from EP %d\n", count, itf);
+            
+            // To see the actual data, you can print the buffer contents
+             char buffer_str[count + 1];
+             memcpy(buffer_str, cdc_rx_buffer, count);
+             buffer_str[count] = '\0';
+             printf("Data: %s\n", buffer_str);
+    //}
+}
+
+*/
 
 // Every 10ms, we will sent 1 report for each HID profile (keyboard, mouse etc ..)
 // tud_hid_report_complete_cb() is used to send the next report after previous one is complete
