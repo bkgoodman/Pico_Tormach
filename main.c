@@ -56,7 +56,14 @@ enum  {
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
 #define HID_DATA_LEN 17
-uint8_t hid_data[HID_DATA_LEN];
+#define TORMACH_BUTTONS (9)
+#define TORMACH_KNOBS (8)
+//uint8_t hid_data[HID_DATA_LEN];
+typedef struct tormach_data_s {
+  uint8_t buttons; // 8 buttons
+  uint16_t knob[TORMACH_KNOBS]; // I think there are really 9 (according to HID descriptor)
+}  __attribute__ ((aligned(2))) *tormach_data_p, tormach_data_t;
+tormach_data_t hid_data;
 
 void led_blinking_task(void);
 void hid_task(void);
@@ -67,6 +74,8 @@ int main(void)
 {
   board_init();
 
+  // Initialize Tormach data
+  memset((void *) &hid_data,(uint8_t) 0,HID_DATA_LEN);
   // init device stack on configured roothub port
   tusb_init();
   //tud_init(BOARD_TUD_RHPORT);
@@ -137,7 +146,7 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
   if ( !tud_hid_ready() ) return;
   if (board_button_read())
     printf ("Keypress\n");
-  tud_hid_report(0, hid_data,HID_DATA_LEN);
+  tud_hid_report(0, (uint8_t * ) &hid_data,HID_DATA_LEN);
   //tud_hid_report(0, "ABCDE",5);
   return;
 
@@ -226,37 +235,93 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
   }
 }
 
+void dump(void *ptr, int len) {
+  uint8_t *p = ptr;
+      for (size_t i = 0; i < len; i++) {
+          printf("%02X ", p[i]);
+      }
+      printf("\n");
+}
 #define INPUT_BUFFER_SIZE 256
 uint8_t input_index=0;
 uint8_t input_buffer[INPUT_BUFFER_SIZE];
 
 void process_line(void) {
     printf("Received: \"%s\"\n", input_buffer);
-    if (!strncmp(input_buffer,"bootsel",7)) {
-      printf("Entering BOOTSEL\n");
-      reset_usb_boot(0,0);
-    }
 
     // Parse the ASCII string and convert to binary
     char *token = strtok(input_buffer, " ");
-    size_t binary_index = 0;
+    if (!token) goto end;
 
-    while (token != NULL && binary_index < HID_DATA_LEN) {
-        // Convert the hex string token (e.g., "aa") to a binary byte
-        long value = strtol(token, NULL, 16);
-        hid_data[binary_index++] = (uint8_t)value;
 
-        // Get the next token
-        token = strtok(NULL, " ");
+    if (!strcmp(token,"bootsel")) {
+      printf("Entering BOOTSEL\n");
+      reset_usb_boot(0,0);
+    } else if (!strcmp(token,"dump")) {
+      dump(&hid_data,HID_DATA_LEN);
+    } else if (!strcmp(token,"tx")) {
+      printf("Transmitting:\n");
+      tud_hid_report(0, (uint8_t *) &hid_data, HID_DATA_LEN);
+      dump((void *) &hid_data,HID_DATA_LEN);
+    } else if (!strcmp(token,"a")) {
+      token = strtok(NULL, " ");
+      if (!token) goto end;
+      long knob = strtol(token, NULL, 10);
+      token = strtok(NULL, " ");
+      if (!token) goto end;
+      long value = strtol(token, NULL, 10);
+      if ((knob < 0) || (knob >= TORMACH_KNOBS)) {
+        printf("Invalid knob %d\n",knob);
+        goto end;
+      }
+      hid_data.knob[knob] = value;
+
+      tud_hid_report(0, (uint8_t *) &hid_data, HID_DATA_LEN);
+      dump((void *) &hid_data,HID_DATA_LEN);
+    } else if (!strcmp(token,"b")) {
+      token = strtok(NULL, " ");
+      if (!token) goto end;
+      long button = strtol(token, NULL, 16);
+      token = strtok(NULL, " ");
+      if (!token) goto end;
+      long value = strtol(token, NULL, 16);
+      if ((button < 0) || (button >= TORMACH_BUTTONS)) {
+        printf("Invalid button %d\n",button);
+        goto end;
+      }
+      if ((value < 0) || (value > 1)) {
+        printf("Invalid value %d\n",value);
+        goto end;
+      }
+
+      if (value)
+        hid_data.buttons |= (1<< button);
+      else
+        hid_data.buttons &= ~(1<< button);
+
+      tud_hid_report(0, (uint8_t *) &hid_data, HID_DATA_LEN);
+      dump((void *) &hid_data,HID_DATA_LEN);
+    } else if (!strcmp(token,"raw")) {
+      size_t binary_index = 0;
+      uint8_t *hidptr = (uint8_t *) &hid_data;
+      while (token != NULL && binary_index < HID_DATA_LEN) {
+          // Convert the hex string token (e.g., "aa") to a binary byte
+          long value = strtol(token, NULL, 16);
+          hidptr[binary_index++] = (uint8_t)value;
+
+          // Get the next token
+          token = strtok(NULL, " ");
+      }
+
+      // Print the converted binary data
+      printf("Converted to binary (size: %zu):\n", binary_index);
+      tud_hid_report(0, (uint8_t *) &hid_data, binary_index);
+      dump(hidptr,binary_index);
+    } else {
+      printf("Invalid Command \"%s\"\n",token);
+      printf("Commands are dump, tx, raw (bytes), b (button) 1|0, a (knob) (value\n");
     }
-
-    // Print the converted binary data
-    printf("Converted to binary (size: %zu):\n", binary_index);
-    for (size_t i = 0; i < binary_index; i++) {
-        printf("%02X ", hid_data[i]);
-    }
-    printf("\n");
-    tud_hid_report(0, hid_data, binary_index);
+end:
     // Clear buffer for next line
     memset(input_buffer, 0, INPUT_BUFFER_SIZE);
     input_index = 0;

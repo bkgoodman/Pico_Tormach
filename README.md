@@ -38,4 +38,9 @@ You can write to the ACM port to have stuff come out HID for testing, like:
 `echo -e "11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff 00\n" > /dev/ttyACM0`
 
 ## Quick enter Bootsel mode
-`echo -e "\n\nbootsel\n" | sudo tee -ap /dev/ttyACM0`
+```
+sudo stty -F /dev/ttyACM0 115200 cs8 cread clocal -ixon -ixoff
+echo -e "bootsel\n" | sudo cat > /dev/ttyACM0
+```
+
+The first line keeps the flow control open during the command
