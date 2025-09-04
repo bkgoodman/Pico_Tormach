@@ -282,7 +282,7 @@ void process_stdio_in()
         }
 }
 
-/*
+
 // Define a buffer to hold the received data
 #define CDC_BUFFER_SIZE 64
 uint8_t buffer_index=0;
@@ -294,22 +294,18 @@ void tud_cdc_rx_cb(uint8_t itf) {
 if (itf ==0) return;
     uint32_t count;
     // Read all available data from the CDC buffer
-    //while (tud_cdc_available()) {
+    if (itf == EPNUM_TORMACH_OUT) { 
+    while (tud_cdc_n_available(itf)) {
         count = tud_cdc_n_read(itf,cdc_rx_buffer, sizeof(cdc_rx_buffer));
         
             // Process the received data here. For example, print it.
             // Note: This will not be line-buffered. It will print every packet.
             printf("Read %d bytes from EP %d\n", count, itf);
-            
-            // To see the actual data, you can print the buffer contents
-             char buffer_str[count + 1];
-             memcpy(buffer_str, cdc_rx_buffer, count);
-             buffer_str[count] = '\0';
-             printf("Data: %s\n", buffer_str);
-    //}
+      }
+    }
 }
 
-*/
+
 
 // Every 10ms, we will sent 1 report for each HID profile (keyboard, mouse etc ..)
 // tud_hid_report_complete_cb() is used to send the next report after previous one is complete

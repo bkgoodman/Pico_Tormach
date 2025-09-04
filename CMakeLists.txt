@@ -5,27 +5,27 @@ project(hello C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 pico_sdk_init()
 
-add_executable(dev_hid_composite)
+add_executable(pico_tormach)
 
-target_sources(dev_hid_composite PUBLIC
+target_sources(pico_tormach PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/main.c
         ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
         )
 
 # Make sure TinyUSB can find tusb_config.h
-target_include_directories(dev_hid_composite PUBLIC
+target_include_directories(pico_tormach PUBLIC
         ${CMAKE_CURRENT_LIST_DIR})
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(dev_hid_composite PUBLIC pico_stdlib pico_unique_id tinyusb_device tinyusb_board )
+target_link_libraries(pico_tormach PUBLIC pico_stdlib pico_unique_id tinyusb_device tinyusb_board )
 # REMOVED pico_stdio_usb
 
 # Uncomment this line to enable fix for Errata RP2040-E5 (the fix requires use of GPIO 15)
-#target_compile_definitions(dev_hid_composite PUBLIC PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1)
-pico_enable_stdio_usb(dev_hid_composite 1)
+#target_compile_definitions(pico_tormach PUBLIC PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1)
+pico_enable_stdio_usb(pico_tormach 1)
 
-pico_add_extra_outputs(dev_hid_composite)
+pico_add_extra_outputs(pico_tormach)
 
 # add url via pico_set_program_url
-#example_auto_set_url(dev_hid_composite)
+#example_auto_set_url(pico_tormach)

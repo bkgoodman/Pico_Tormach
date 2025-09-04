@@ -19,7 +19,7 @@ make
 # RUNNING
 
 ```
-cp hello.uf2 /media/$USER/RPI-RP2/
+cp pico_tormach.uf2 /media/$USER/RPI-RP2/
 sudo minicom -b 115200 -o -D /dev/ttyACM0
 ```
 

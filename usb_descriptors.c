@@ -138,13 +138,6 @@ enum
 //#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_CDC_DESC_LEN)
 #define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN)
 
-// define endpoint numbers
-#define EPNUM_CDC_0_NOTIF   0x81 // notification endpoint for CDC 0
-#define EPNUM_CDC_0_OUT     0x02 // out endpoint for CDC 0
-#define EPNUM_CDC_0_IN      0x82 // in endpoint for CDC 0
-
-#define EPNUM_TORMACH_IN   0x84
-#define EPNUM_TORMACH_OUT   0x5
 #define LSB(x) (x & 0xFF)
 #define MSB(x) ((x>>8)& 0xFF)
 
