@@ -48,7 +48,7 @@ tusb_desc_device_t const desc_device =
     .bLength            = sizeof(tusb_desc_device_t),
     .bDescriptorType    = TUSB_DESC_DEVICE,
     .bcdUSB             = USB_BCD,
-    .bDeviceClass       = 0x00,
+    .bDeviceClass       = 0x03,
     .bDeviceSubClass    = 0x00,
     .bDeviceProtocol    = 0x00,
     .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
@@ -130,18 +130,23 @@ enum
 {
   ITF_NUM_CDC_0 = 0,
   ITF_NUM_CDC_0_DATA,
-  ITF_NUM_HID,
+  ITF_NUM_TORMACH,
   ITF_NUM_TOTAL
 };
 
-#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN)
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN)
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_CDC_DESC_LEN)
+#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN)
 
 // define endpoint numbers
 #define EPNUM_CDC_0_NOTIF   0x81 // notification endpoint for CDC 0
 #define EPNUM_CDC_0_OUT     0x02 // out endpoint for CDC 0
 #define EPNUM_CDC_0_IN      0x82 // in endpoint for CDC 0
 
-#define EPNUM_HID   0x84
+#define EPNUM_TORMACH_IN   0x84
+#define EPNUM_TORMACH_OUT   0x5
+#define LSB(x) (x & 0xFF)
+#define MSB(x) ((x>>8)& 0xFF)
 
 uint8_t const desc_configuration[] =
 {
@@ -152,7 +157,45 @@ uint8_t const desc_configuration[] =
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 8, EPNUM_CDC_0_OUT, EPNUM_CDC_0_IN, 64),
 
   // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
-  TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 5)
+  //TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 5)
+  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_TORMACH, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_TORMACH_OUT, EPNUM_TORMACH_IN, 64, 10),
+
+  /*
+  // Tormach Interface
+  	  // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+        9,                                      // bLength
+        4,                                      // bDescriptorType
+        2,                     // bInterfaceNumber TODO does this need to be ZERO??
+        0,                                      // bAlternateSetting
+        2,                                      // bNumEndpoints
+        0x03,                                   // bInterfaceClass (0x03 = HID)
+        0x00,                                   // bInterfaceSubClass
+        0x00,                                   // bInterfaceProtocol
+        0,                                      // iInterface
+        // HID interface descriptor, HID 1.11 spec, section 6.2.1
+        9,                                      // bLength
+        0x21,                                   // bDescriptorType
+        0x11, 0x01,                             // bcdHID
+        0,                                      // bCountryCode
+        1,                                      // bNumDescriptors
+        0x22,                                   // bDescriptorType
+        LSB(sizeof(desc_hid_report)),       // wDescriptorLength
+        MSB(sizeof(desc_hid_report)),
+        // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+        7,                                      // bLength
+        5,                                      // bDescriptorType
+        EPNUM_HID | 0x80,             // bEndpointAddress
+        0x03,                                   // bmAttributes (0x03=intr)
+        64, 0,                     // wMaxPacketSize
+        64,                    // bInterval
+        // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+        7,                                      // bLength
+        5,                                      // bDescriptorType
+        EPNUM_TORMACH_RX,                    // bEndpointAddress
+        0x03,                                   // bmAttributes (0x03=intr)
+        16, 0,                     // wMaxPacketSize
+        64,			// bInterval
+        */
 };
 
 #if TUD_OPT_HIGH_SPEED
