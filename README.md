@@ -1,3 +1,14 @@
+# Intoduction
+
+This device emulates a Tormach controller as a USB device. Tormach should recognize this and
+allow you to send events to it to control analog such as Max Velocity, Feed and Splindle speeds,
+and some buttons like stop, start, feedhold, etc.
+
+It does this by presenting a special USB HID device, recognized as a Tommach controller.
+Data sent to the appropriate endpoint is then interpreted as those knob and button settings.
+
+It also presents a serial (TTY/Modem) device for debug
+
 # Build
 ```
 cd build
@@ -25,3 +36,6 @@ You can then push button to dump HID
 You can write to the ACM port to have stuff come out HID for testing, like:
 
 `echo -e "11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff 00\n" > /dev/ttyACM0`
+
+## Quick enter Bootsel mode
+`echo -e "\n\nbootsel\n" | sudo tee -ap /dev/ttyACM0`

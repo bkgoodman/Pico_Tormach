@@ -33,6 +33,9 @@
 #include "usb_descriptors.h"
 #include <pico/stdio.h>
 #include <pico/stdio_usb.h>
+#include <pico/stdlib.h>
+#include <pico/bootrom.h>
+#include "hardware/watchdog.h" // Required for reset_usb_boot
 
 
 //--------------------------------------------------------------------+
@@ -52,7 +55,7 @@ enum  {
 
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
-#define HID_DATA_LEN 31
+#define HID_DATA_LEN 17
 uint8_t hid_data[HID_DATA_LEN];
 
 void led_blinking_task(void);
@@ -134,8 +137,8 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
   if ( !tud_hid_ready() ) return;
   if (board_button_read())
     printf ("Keypress\n");
-  //tud_hid_report(0, hid_data,HID_DATA_LEN);
-  tud_hid_report(0, "ABCDE",5);
+  tud_hid_report(0, hid_data,HID_DATA_LEN);
+  //tud_hid_report(0, "ABCDE",5);
   return;
 
   switch(report_id)
@@ -229,6 +232,10 @@ uint8_t input_buffer[INPUT_BUFFER_SIZE];
 
 void process_line(void) {
     printf("Received: \"%s\"\n", input_buffer);
+    if (!strncmp(input_buffer,"bootsel",7)) {
+      printf("Entering BOOTSEL\n");
+      reset_usb_boot(0,0);
+    }
 
     // Parse the ASCII string and convert to binary
     char *token = strtok(input_buffer, " ");
