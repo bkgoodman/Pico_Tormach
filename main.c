@@ -302,6 +302,9 @@ void process_line(void) {
       tud_hid_report(0, (uint8_t *) &hid_data, HID_DATA_LEN);
       dump((void *) &hid_data,HID_DATA_LEN);
     } else if (!strcmp(token,"raw")) {
+      token = strtok(NULL, " ");
+      if (!token) goto end;
+      int instance = strtol(token, NULL, 10);
       size_t binary_index = 0;
       uint8_t *hidptr = (uint8_t *) &hid_data;
       while (token != NULL && binary_index < HID_DATA_LEN) {
@@ -314,12 +317,12 @@ void process_line(void) {
       }
 
       // Print the converted binary data
-      printf("Converted to binary (size: %zu):\n", binary_index);
-      tud_hid_report(0, (uint8_t *) &hid_data, binary_index);
+      printf("Transmit to instance %d (size: %zu):\n", instance,binary_index);
+      tud_hid_n_report(instance,0, (uint8_t *) &hid_data, binary_index);
       dump(hidptr,binary_index);
     } else {
       printf("Invalid Command \"%s\"\n",token);
-      printf("Commands are dump, tx, raw (bytes), b (button) 1|0, a (knob) (value\n");
+      printf("Commands are dump, tx, raw {instnace} {hexbytes...}, b {button} 1|0, a {knob} {value}\n");
     }
 end:
     // Clear buffer for next line
