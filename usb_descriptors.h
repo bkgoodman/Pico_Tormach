@@ -34,11 +34,28 @@ enum
   REPORT_ID_COUNT
 };
 
-// define endpoint numbers
-#define EPNUM_CDC_0_NOTIF   0x81 // notification endpoint for CDC 0
-#define EPNUM_CDC_0_OUT     0x02 // out endpoint for CDC 0
-#define EPNUM_CDC_0_IN      0x82 // in endpoint for CDC 0
+//--------------------------------------------------------------------+
+// Configuration Descriptor
+//--------------------------------------------------------------------+
 
-#define EPNUM_TORMACH_IN   0x84
-#define EPNUM_TORMACH_OUT   0x5
+enum
+{
+  ITF_NUM_TORMACH =0,
+  ITF_NUM_CDC_0,
+  ITF_NUM_CDC_0_DATA,
+  ITF_NUM_KEYBOARD,
+  ITF_NUM_TORMACH2,
+  ITF_NUM_TOTAL
+};
+
+// define endpoint numbers
+#define EPNUM_CDC_0_NOTIF   0x83 // notification endpoint for CDC 0
+#define EPNUM_CDC_0_OUT     0x04 // out endpoint for CDC 0
+#define EPNUM_CDC_0_IN      0x85 // in endpoint for CDC 0
+
+#define EPNUM_TORMACH_IN   0x81
+#define EPNUM_TORMACH_OUT   0x2
+
+#define EPNUM_KEYBOARD   0x86
+#define EPNUM_TORMACH2   0x87
 #endif /* USB_DESCRIPTORS_H_ */

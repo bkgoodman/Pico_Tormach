@@ -40,6 +40,21 @@
 #define USB_VID   0x16c0
 #define USB_BCD   0x0200
 
+
+// THIS IS A COPY - but I flip the order of in and out, to make like Tormach one
+// HID Input & Output descriptor
+// Interface number, string index, protocol, report descriptor len, EP OUT & IN address, size & polling interval
+#define TUD_HID_BKG_INOUT_DESCRIPTOR(_itfnum, _stridx, _boot_protocol, _report_desc_len, _epout, _epin, _epinsize, _epoutsize, _ep_interval) \
+  /* Interface */\
+  9, TUSB_DESC_INTERFACE, _itfnum, 0, 2, TUSB_CLASS_HID, (uint8_t)((_boot_protocol) ? (uint8_t)HID_SUBCLASS_BOOT : 0), _boot_protocol, _stridx,\
+  /* HID descriptor */\
+  9, HID_DESC_TYPE_HID, U16_TO_U8S_LE(0x0111), 0, 1, HID_DESC_TYPE_REPORT, U16_TO_U8S_LE(_report_desc_len),\
+  /* Endpoint In */\
+  7, TUSB_DESC_ENDPOINT, _epin, TUSB_XFER_INTERRUPT, U16_TO_U8S_LE(_epinsize), _ep_interval, \
+  /* Endpoint Out */\
+  7, TUSB_DESC_ENDPOINT, _epout, TUSB_XFER_INTERRUPT, U16_TO_U8S_LE(_epoutsize), 0
+
+
 //--------------------------------------------------------------------+
 // Device Descriptors
 //--------------------------------------------------------------------+
@@ -113,30 +128,91 @@ static uint8_t desc_hid_report[] = {
 0xC0,              // End Collection
 };
 
+// Tormach2
+static uint8_t desc_hid_report2[] = {
+0x05, 0x0C,        // Usage Page (Consumer)
+0x09, 0x01,        // Usage (Consumer Control)
+0xA1, 0x01,        // Collection (Application)
+0x75, 0x0A,        //   Report Size (10)
+0x95, 0x04,        //   Report Count (4)
+0x19, 0x00,        //   Usage Minimum (Unassigned)
+0x2A, 0x9C, 0x02,  //   Usage Maximum (AC Distribute Vertically)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0x9C, 0x02,  //   Logical Maximum (668)
+0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x05, 0x01,        //   Usage Page (Generic Desktop Ctrls)
+0x75, 0x08,        //   Report Size (8)
+0x95, 0x03,        //   Report Count (3)
+0x19, 0x00,        //   Usage Minimum (Undefined)
+0x29, 0xB7,        //   Usage Maximum (Sys Display LCD Autoscale)
+0x15, 0x00,        //   Logical Minimum (0)
+0x26, 0xB7, 0x00,  //   Logical Maximum (183)
+0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+};
+
+// Keyboard
+static uint8_t desc_hid_keyboard[] = {
+  // TUD_HID_REPORT_DESC_KEYBOARD()
+0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
+0x09, 0x06,        // Usage (Keyboard)
+0xA1, 0x01,        // Collection (Application)
+0x75, 0x01,        //   Report Size (1)
+0x95, 0x08,        //   Report Count (8)
+0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+0x19, 0xE0,        //   Usage Minimum (0xE0)
+0x29, 0xE7,        //   Usage Maximum (0xE7)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x01,        //   Logical Maximum (1)
+0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x01,        //   Report Count (1)
+0x75, 0x08,        //   Report Size (8)
+0x81, 0x03,        //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0x95, 0x05,        //   Report Count (5)
+0x75, 0x01,        //   Report Size (1)
+0x05, 0x08,        //   Usage Page (LEDs)
+0x19, 0x01,        //   Usage Minimum (Num Lock)
+0x29, 0x05,        //   Usage Maximum (Kana)
+0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x95, 0x01,        //   Report Count (1)
+0x75, 0x03,        //   Report Size (3)
+0x91, 0x03,        //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+0x95, 0x06,        //   Report Count (6)
+0x75, 0x08,        //   Report Size (8)
+0x15, 0x00,        //   Logical Minimum (0)
+0x25, 0x7F,        //   Logical Maximum (127)
+0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+0x19, 0x00,        //   Usage Minimum (0x00)
+0x29, 0x7F,        //   Usage Maximum (0x7F)
+0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+0xC0,              // End Collection
+};
+
 // Invoked when received GET HID REPORT DESCRIPTOR
 // Application return pointer to descriptor
 // Descriptor contents must exist long enough for transfer to complete
 uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)
 {
   (void) instance;
-  return desc_hid_report;
+      return desc_hid_keyboard;
+  switch (instance) {
+    case 0:
+      return desc_hid_keyboard;
+    case 1:
+      return desc_hid_report;
+    case 2:
+      return desc_hid_report2;
+  }
+  return 0L;
 }
 
-//--------------------------------------------------------------------+
-// Configuration Descriptor
-//--------------------------------------------------------------------+
-
-enum
-{
-  ITF_NUM_CDC_0 = 0,
-  ITF_NUM_CDC_0_DATA,
-  ITF_NUM_TORMACH,
-  ITF_NUM_TOTAL
-};
 
 //#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN)
 //#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_CDC_DESC_LEN)
-#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN)
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_DESC_LEN + TUD_HID_DESC_LEN )
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_DESC_LEN)
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN )
+#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN)
 
 #define LSB(x) (x & 0xFF)
 #define MSB(x) ((x>>8)& 0xFF)
@@ -149,9 +225,11 @@ uint8_t const desc_configuration[] =
 
   // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
   //TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 5)
-  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_TORMACH, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_TORMACH_OUT, EPNUM_TORMACH_IN, 64, 10),
-  // STDIO 
+  //
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 8, EPNUM_CDC_0_OUT, EPNUM_CDC_0_IN, 64),
+  TUD_HID_DESCRIPTOR(ITF_NUM_KEYBOARD, 0, HID_ITF_PROTOCOL_KEYBOARD, sizeof(desc_hid_keyboard), EPNUM_KEYBOARD, 8, 5) // Standard Keyboard - FIXME!!
+  //TUD_HID_BKG_INOUT_DESCRIPTOR(ITF_NUM_TORMACH, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_TORMACH_OUT, EPNUM_TORMACH_IN, 64, 16, 10),
+  //TUD_HID_DESCRIPTOR(ITF_NUM_TORMACH2, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report2), EPNUM_TORMACH2, 8, 5) // Why "8" for epsize?!?
 
   /*
   // Tormach Interface
