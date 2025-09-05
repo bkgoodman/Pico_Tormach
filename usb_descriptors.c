@@ -188,19 +188,20 @@ static uint8_t desc_hid_keyboard[] = {
 0xC0,              // End Collection
 };
 
+
 // Invoked when received GET HID REPORT DESCRIPTOR
 // Application return pointer to descriptor
 // Descriptor contents must exist long enough for transfer to complete
 uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)
 {
   (void) instance;
-      return desc_hid_keyboard;
+      return desc_hid_report2;
   switch (instance) {
-    case 0:
+    case ITF_NUM_KEYBOARD:
       return desc_hid_keyboard;
-    case 1:
+    case ITF_NUM_TORMACH:
       return desc_hid_report;
-    case 2:
+    case ITF_NUM_TORMACH2:
       return desc_hid_report2;
   }
   return 0L;
@@ -212,7 +213,13 @@ uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)
 //#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_DESC_LEN + TUD_HID_DESC_LEN )
 //#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_DESC_LEN)
 //#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_CDC_DESC_LEN )
-#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN)
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_HID_DESC_LEN +  TUD_HID_INOUT_DESC_LEN)
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_CDC_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN )
+//#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  TUD_HID_DESC_LEN +  TUD_HID_DESC_LEN)
+#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN +  (2* TUD_HID_DESC_LEN) + TUD_CDC_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
+
 
 #define LSB(x) (x & 0xFF)
 #define MSB(x) ((x>>8)& 0xFF)
@@ -224,12 +231,11 @@ uint8_t const desc_configuration[] =
 
 
   // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
-  //TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 5)
-  //
+  TUD_HID_BKG_INOUT_DESCRIPTOR(ITF_NUM_TORMACH, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_TORMACH_OUT, EPNUM_TORMACH_IN, 64, 16, 10),
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 8, EPNUM_CDC_0_OUT, EPNUM_CDC_0_IN, 64),
-  TUD_HID_DESCRIPTOR(ITF_NUM_KEYBOARD, 0, HID_ITF_PROTOCOL_KEYBOARD, sizeof(desc_hid_keyboard), EPNUM_KEYBOARD, 8, 5) // Standard Keyboard - FIXME!!
-  //TUD_HID_BKG_INOUT_DESCRIPTOR(ITF_NUM_TORMACH, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_TORMACH_OUT, EPNUM_TORMACH_IN, 64, 16, 10),
-  //TUD_HID_DESCRIPTOR(ITF_NUM_TORMACH2, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report2), EPNUM_TORMACH2, 8, 5) // Why "8" for epsize?!?
+  //TUD_HID_DESCRIPTOR(ITF_NUM_KEYBOARD, 0, HID_ITF_PROTOCOL_KEYBOARD, sizeof(desc_hid_keyboard), EPNUM_KEYBOARD, 8, 5) // Standard Keyboard - FIXME!!
+  TUD_HID_DESCRIPTOR(ITF_NUM_KEYBOARD, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report2), EPNUM_KEYBOARD, 8, 5), // DEBUG
+  TUD_HID_DESCRIPTOR(ITF_NUM_TORMACH2, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report2), EPNUM_TORMACH2, 8, 5) // Why "8" for epsize?!?
 
   /*
   // Tormach Interface

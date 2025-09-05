@@ -54,7 +54,7 @@ enum
 #define EPNUM_CDC_0_IN      0x85 // in endpoint for CDC 0
 
 #define EPNUM_TORMACH_IN   0x81
-#define EPNUM_TORMACH_OUT   0x2
+#define EPNUM_TORMACH_OUT  0x02
 
 #define EPNUM_KEYBOARD   0x86
 #define EPNUM_TORMACH2   0x87
