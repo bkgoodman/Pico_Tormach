@@ -307,6 +307,7 @@ void process_line(void) {
       int instance = strtol(token, NULL, 10);
       size_t binary_index = 0;
       uint8_t *hidptr = (uint8_t *) &hid_data;
+      token = strtok(NULL, " ");
       while (token != NULL && binary_index < HID_DATA_LEN) {
           // Convert the hex string token (e.g., "aa") to a binary byte
           long value = strtol(token, NULL, 16);
