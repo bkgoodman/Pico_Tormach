@@ -36,6 +36,7 @@
 #include <pico/stdlib.h>
 #include <pico/bootrom.h>
 #include "hardware/watchdog.h" // Required for reset_usb_boot
+#include "knobs.h"
 
 
 //--------------------------------------------------------------------+
@@ -73,7 +74,6 @@ void process_stdio_in();
 int main(void)
 {
   board_init();
-
   // Initialize Tormach data
   memset((void *) &hid_data,(uint8_t) 0,HID_DATA_LEN);
   // init device stack on configured roothub port
@@ -86,6 +86,7 @@ int main(void)
 
   stdio_init_all();
 
+  knob_init();
 
   while (1)
   {
@@ -93,6 +94,7 @@ int main(void)
     led_blinking_task();
 
     hid_task();
+    knob_task();
   process_stdio_in();
   /*
 if (tud_cdc_n_connected(0)) {
@@ -259,10 +261,16 @@ void process_line(void) {
       reset_usb_boot(0,0);
     } else if (!strcmp(token,"dump")) {
       dump(&hid_data,HID_DATA_LEN);
+    } else if (!strcmp(token,"knobinit")) {
+      printf("Entering knob_init\n");
+	    knob_init();   /// REMOVE THIS COMMAND TODO BKG
+      printf("Exited knob_init\n");
     } else if (!strcmp(token,"tx")) {
       printf("Transmitting:\n");
       tud_hid_report(0, (uint8_t *) &hid_data, HID_DATA_LEN);
       dump((void *) &hid_data,HID_DATA_LEN);
+    } else if (!strcmp(token,"gpiodump")) {
+	knob_gpiodump();
     } else if (!strcmp(token,"a")) {
       token = strtok(NULL, " ");
       if (!token) goto end;

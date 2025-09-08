@@ -10,6 +10,7 @@ add_executable(pico_tormach)
 target_sources(pico_tormach PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/main.c
         ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
+        ${CMAKE_CURRENT_LIST_DIR}/knobs.c
         )
 
 # Make sure TinyUSB can find tusb_config.h
