@@ -1,6 +1,8 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
+#include <common/tusb_common.h>
 #include <stdio.h>
+#include "tormach.h"
 
 #define NUM_ENCODERS 3
 #define ENCODER_COUNT_MIN 0
@@ -34,6 +36,17 @@ const int8_t transition_table[16] = {
     -1,   0,   0,  +1,
     0,  +1,  -1,   0
 };
+
+/// Host to Little-Endian Short (16-bit)
+static inline uint16_t htols(uint16_t x)
+{
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    return x;  // already little-endian
+#else
+    // swap bytes on big-endian systems
+    return (x << 8) | (x >> 8);
+#endif
+}
 
 void gpio_callback(uint gpio, uint32_t events) {
     gpio_put(PICO_DEFAULT_LED_PIN, !gpio_get(PICO_DEFAULT_LED_PIN));
@@ -137,17 +150,23 @@ int knob_init() {
 
 }
 
-void knob_task() {
-
+// Returns TRUE if it updated HID data
+// (and caller should transmit)
+bool knob_task() {
+	bool update = false;
         for (int i = 0; i < NUM_ENCODERS; i++) {
 	    if (encoder_counts[i] != prev_encoder_counts[i]) {
 	    	prev_encoder_counts[i] = encoder_counts[i];
+		hid_data.knob[i] = htols(prev_encoder_counts[i]);
+		update = true;
             	printf("Encoder %d: %d (scale=%d)\n", i, encoder_counts[i], encoder_scale[i]);
 	    }
             if (button_pressed[i]) {
                 printf("Encoder %d button pressed!\n", i);
                 button_pressed[i] = false;
+		update = true;
             }
         }
+	return update;
 }
 

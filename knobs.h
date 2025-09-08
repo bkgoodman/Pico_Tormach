@@ -1,4 +1,4 @@
 
-void knob_task();
+bool knob_task();
 int knob_init();
 void knob_gpiodump();

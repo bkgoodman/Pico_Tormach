@@ -36,6 +36,7 @@
 #include <pico/stdlib.h>
 #include <pico/bootrom.h>
 #include "hardware/watchdog.h" // Required for reset_usb_boot
+#include "tormach.h"
 #include "knobs.h"
 
 
@@ -56,14 +57,6 @@ enum  {
 
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
-#define HID_DATA_LEN 17
-#define TORMACH_BUTTONS (9)
-#define TORMACH_KNOBS (8)
-//uint8_t hid_data[HID_DATA_LEN];
-typedef struct tormach_data_s {
-  uint8_t buttons; // 8 buttons
-  uint16_t knob[TORMACH_KNOBS]; // I think there are really 9 (according to HID descriptor)
-}  __attribute__ ((aligned(2))) *tormach_data_p, tormach_data_t;
 tormach_data_t hid_data;
 
 void led_blinking_task(void);
@@ -94,8 +87,11 @@ int main(void)
     led_blinking_task();
 
     hid_task();
-    knob_task();
-  process_stdio_in();
+    if (knob_task()){
+	  tud_hid_report(0, (uint8_t * ) &hid_data,HID_DATA_LEN);
+    }
+
+    process_stdio_in();
   /*
 if (tud_cdc_n_connected(0)) {
         // print on CDC 0 some debug message
@@ -146,8 +142,8 @@ static void send_hid_report(uint8_t report_id, uint32_t btn)
 {
   // skip if hid is not ready yet
   if ( !tud_hid_ready() ) return;
-  if (board_button_read())
-    printf ("Keypress\n");
+  //if (board_button_read())
+  //  printf ("Keypress\n");
   tud_hid_report(0, (uint8_t * ) &hid_data,HID_DATA_LEN);
   //tud_hid_report(0, "ABCDE",5);
   return;
