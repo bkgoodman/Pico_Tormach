@@ -88,7 +88,7 @@ int main(void)
 
     hid_task();
     if (knob_task()){
-	  tud_hid_report(0, (uint8_t * ) &hid_data,HID_DATA_LEN);
+      tud_hid_n_report(HID_INSTANCE_TORMACH,0, (uint8_t *) &hid_data, HID_DATA_LEN);
     }
 
     process_stdio_in();
@@ -255,6 +255,10 @@ void process_line(void) {
     if (!strcmp(token,"bootsel")) {
       printf("Entering BOOTSEL\n");
       reset_usb_boot(0,0);
+    } else if (!strcmp(token,"key")) {
+      uint8_t keycode[6] = {0};
+      /* instance zero is keyboard */
+      tud_hid_n_keyboard_report(0, 0, 0, keycode);
     } else if (!strcmp(token,"dump")) {
       dump(&hid_data,HID_DATA_LEN);
     } else if (!strcmp(token,"knobinit")) {

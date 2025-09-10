@@ -214,6 +214,14 @@ uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)
 #define LSB(x) (x & 0xFF)
 #define MSB(x) ((x>>8)& 0xFF)
 
+
+/* NOTE!
+ * Changes in the descriptor table below MUST be done to match:
+ *
+ * - HID_INSTANCE numbers in usb_descriptors
+ * - "CLASS" counts (CFG_TUD_*) in tusb_config.h
+*/
+
 uint8_t const desc_configuration[] =
 {
   // Config number, interface count, string index, total length, attribute, power in mA

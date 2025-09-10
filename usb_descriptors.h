@@ -48,6 +48,13 @@ enum
   ITF_NUM_TOTAL
 };
 
+enum
+{
+  HID_INSTANCE_KEYBOARD =0,
+  HID_INSTANCE_TORMACH,
+  HID_INSTANCE_TORMACH2
+};
+
 // define endpoint numbers
 #define EPNUM_CDC_0_NOTIF   0x83 // notification endpoint for CDC 0
 #define EPNUM_CDC_0_OUT     0x04 // out endpoint for CDC 0
