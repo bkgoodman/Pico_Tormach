@@ -49,6 +49,7 @@
  * - 1000 ms : device mounted
  * - 2500 ms : device is suspended
  */
+
 enum  {
   BLINK_NOT_MOUNTED = 250,
   BLINK_MOUNTED = 1000,

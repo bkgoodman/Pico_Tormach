@@ -5,10 +5,14 @@
 #define HID_DATA_LEN 17
 #define TORMACH_BUTTONS (9)
 #define TORMACH_KNOBS (8)
-typedef struct tormach_data_s {
-  uint8_t buttons; // 8 buttons
-  uint16_t knob[TORMACH_KNOBS]; // I think there are really 9 (according to HID descriptor)
-}  __attribute__ ((aligned(2))) *tormach_data_p, tormach_data_t;
+
+typedef struct __attribute__((packed)) {
+    uint8_t  buttons;                 // offset 0
+    uint16_t knob[TORMACH_KNOBS];     // offset 1 (unaligned)
+} tormach_data_t;
+
+_Static_assert(offsetof(tormach_data_t, knob) == 1, "knob offset must be 1");
+
 
 extern tormach_data_t hid_data;
 #endif

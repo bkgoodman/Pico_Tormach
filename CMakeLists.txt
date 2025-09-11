@@ -28,6 +28,9 @@ pico_enable_stdio_usb(pico_tormach 1)
 
 pico_add_extra_outputs(pico_tormach)
 
+# enabled CLI Debug
+add_compile_definitions(DEBUG)
+
 # add url via pico_set_program_url
 #example_auto_set_url(pico_tormach)
 

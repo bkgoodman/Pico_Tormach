@@ -16,20 +16,31 @@ cmake -DCMAKE_BUILD_TYPE=Debug  ..
 make
 ```
 
-# RUNNING
+# Running
 
 ```
 cp pico_tormach.uf2 /media/$USER/RPI-RP2/
-sudo minicom -b 115200 -o -D /dev/ttyACM0
 ```
 
 # Debug HID
 
+To enable a debug build, uncomment in `CMakeList.txt`:
+
+```
+add_compile_definitions(DEBUG)
+```
+
+Debug builds present a TTY device which you can connect to to get diagnostic output and CLI commands. (Type `help` for commands).
+
+```
+sudo minicom -b 115200 -o -D /dev/ttyACM0
+```
 When you install  `dmesg` will show something like:
 
 `hid-generic 0003:16C0:048F.000F: input,hidraw0: USB HID v1.11 Device [Tormach Console Controller] on usb-0000:00:14.0-1/input0`
 
-You can then push button to dump HID
+You can get output by dumping the appropriate raw HID devices:
+
 `xxd /dev/hidraw0`
 
 
