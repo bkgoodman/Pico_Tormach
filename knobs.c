@@ -24,7 +24,7 @@ volatile uint8_t last_state[NUM_ENCODERS] = {0};
 volatile int encoder_scale[NUM_ENCODERS] = {10, 10, 10};
 
 // Value when button pressed
-const int button_press_value[NUM_ENCODERS] = {0,500,500};
+const int button_press_value[NUM_ENCODERS] = {500,500,0};
 
 // For timed debounce
 static absolute_time_t last_time[NUM_ENCODERS] = {0};
