@@ -13,6 +13,8 @@ which act as "Feed Hold", "Spindle Speed" and "Max Velocity" knobs. Depresseng t
 
 It also presents a serial (TTY/Modem) device for debug
 
+![Controller](./images/panel.png)
+
 # Quick Install
 
 Just copy the prebuilt .uf2 binary from one one of the releases to the flash drive of your Raspberry Pi2050 Pico.  At the top of the `knobs.c` file you can see the gpios that I use for each control. But if you don't have controll stuff yet, see below under `debugging` to send conrol commands to Tormach directly through debug interface.
