@@ -29,6 +29,12 @@ const int button_press_value[NUM_ENCODERS] = {500,500,0};
 // For timed debounce
 static absolute_time_t last_time[NUM_ENCODERS] = {0};
 
+
+// "Blind" transmits every 2 seconds
+// Interval in uS
+#define BLIND_UPDATE_INTERVAL 2000000
+absolute_time_t last_update = 0;
+
 // Quadrature transition lookup table
 const int8_t transition_table[16] = {
     0,  -1,  +1,   0,
@@ -167,6 +173,17 @@ bool knob_task() {
 		update = true;
             }
         }
+
+    // Blindly send every interval
+    absolute_time_t now = get_absolute_time();
+
+    if ((!last_update) || (absolute_time_diff_us(last_update, now) > BLIND_UPDATE_INTERVAL)) {
+       update = true;
+    }
+
+    if (update)
+      last_update = now;
+
 	return update;
 }
 
