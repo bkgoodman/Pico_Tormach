@@ -141,7 +141,8 @@ int knob_init() {
         //gpio_pull_up(sw);
 
         last_state[i] = (gpio_get(clk) << 1) | gpio_get(dt);
-	last_time[i] = (absolute_time_t){0};
+        last_time[i] = (absolute_time_t){0};
+        encoder_counts[i] = button_press_value[i];
     }
     //gpio_set_irq_enabled_with_callback(0, 0, false, &gpio_callback);
     gpio_set_irq_enabled_with_callback(4, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
